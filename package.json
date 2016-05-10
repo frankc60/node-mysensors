@@ -1,0 +1,11 @@
+{
+  "name": "node-mysensors",
+  "version": "1.0.0",
+  "description": "nodejs to read serial port communication from mysensors network (gateway)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Frank Clausen <frankc60@gmail.com> (http://coffeeboat.co.uk)",
+  "license": "ISC"
+}
