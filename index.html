@@ -1,6 +1,6 @@
 <html>
 <head>
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript" src="/public/loader.js"></script>
     <script type="text/javascript">
       google.charts.load('current', {'packages':['line']});
       google.charts.setOnLoadCallback(drawChart);
@@ -58,8 +58,9 @@
 
 <div id="data">xx</div>
 
-    <script src="socket.io/socket.io.js"></script>
-    <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/bower/jquery/dist/jquery.min.js">
+    </script>
     <script>
     // creating a new websocket
     var socket = io.connect('http://localhost:8000');
@@ -75,7 +76,7 @@
     socket.on("update", function (data) {
 
     	$("#data").append("<br/>" + new Date() + " - " + data);
-
+    	console.log(data);
     });
 
     </script>

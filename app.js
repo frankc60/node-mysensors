@@ -1,25 +1,63 @@
-var app = require('http').createServer(handler),
-  io = require('socket.io').listen(app),
-  parser = new require('xml2json'),
-  fs = require('fs');
+var   parser = new require('xml2json');
+var  fs = require('fs');
 
-// creating the server ( localhost:8000 )
-app.listen(8000);
 
-console.log('server listening on localhost:8000');
+//*********************************************
+// app.js
+var express = require('express');  
+var app = express();  
+var server = require('http').createServer(app);  
+var io = require('socket.io')(server);
 
-// on server started we can load our client.html page
-function handler(req, res) {
-  fs.readFile(__dirname + '/index.html', function(err, data) {
-    if (err) {
-      console.log(err);
-      res.writeHead(500);
-      return res.end('Error loading client.html');
-    }
-    res.writeHead(200);
-    res.end(data);
-  });
-}
+//Static folder, images, js, etc
+app.use("/bower", express.static(__dirname + '/bower_components'));  
+app.use("/public", express.static(__dirname + "/public"));
+
+app.get('/', function(req, res,next) {  
+	console.log("Got a GET request for the homepage");
+    res.sendFile(__dirname + '/index.html');
+});
+
+var srv = server.listen(8000, function () {
+
+  console.log("Connected");
+
+});  
+
+
+
+
+
+/*
+app.get('/', function (req, res) {
+   console.log("Got a GET request for the homepage");
+   //res.send('Hello GET');
+
+
+
+	fs.readFile(__dirname + '/index.html', function(err, data) {
+	    if (err) {
+	      console.log(err);
+	      res.writeHead(500);
+	      return res.end('Error loading index.html');
+	    }
+	    res.writeHead(200, {'Content-Type': 'text/html'});
+	    res.end(data);
+	  });
+
+})
+*/
+
+
+
+
+	    
+   
+
+
+
+
+
 
 // creating a new websocket to keep the content updated without any AJAX request
 io.sockets.on('connection', function(socket) {
@@ -66,7 +104,21 @@ function showPortOpen() {
  
 function sendSerialData(data) {
    	console.log("data: " + data);
-	io.sockets.emit('update', data);
+
+rePattern = new RegExp(/read\:.+((\d)|-)+\ss\=(\d+),c\=(\d+),t\=(\d+),pt\=(\d+),l\=(\d+),sg\=(\d+)\:(.+)/);
+
+arrMatches = data.match(rePattern);
+
+//((\d);)+read:\s((\d)|-)+\ss\=(\d+),c\=(\d+),t\=(\d+),pt\=(\d+),l\=(\d+),sg\=(\d+)\:(.*)
+
+if(arrMatches) {
+
+	data2 = " AA:" + arrMatches[3] + " BB:" + arrMatches[4] + " CC:" + arrMatches[5] + " DD:" + arrMatches[6] + " EE:" + arrMatches[7] + " FF:" + arrMatches[8] + " GG:" + arrMatches[9];
+} else {
+	data2 = "<blank>";
+}
+
+	io.sockets.emit('update', data + data2);
 }
  
 function showPortClose() {

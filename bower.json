@@ -1,0 +1,21 @@
+{
+  "name": "node-mysensors",
+  "description": "nodejs to read serial port communication from mysensors network (gateway)",
+  "main": "app.js",
+  "authors": [
+    "Frank Clausen <frankc60@gmail.com> (http://coffeeboat.co.uk)"
+  ],
+  "license": "ISC",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^2.2.3"
+  }
+}
