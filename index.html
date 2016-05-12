@@ -4,65 +4,15 @@
 	
 <script src="/bower/jquery/dist/jquery.min.js"></script>
 
-  <script type="text/javascript" src="/public/loader.js"></script>
-    <script type="text/javascript">
-      google.charts.load('current', {'packages':['line']});
-      google.charts.setOnLoadCallback(drawChart);
+  
 
-    function drawChart() {
-
-      var data = new google.visualization.DataTable();
-      data.addColumn('number', 'Day');
-      data.addColumn('number', 'Guardians of the Galaxy');
-      data.addColumn('number', 'The Avengers');
-      data.addColumn('number', 'Transformers: Age of Extinction');
-
-      data.addRows([
-        [1,  37.8, 80.8, 41.8],
-        [2,  30.9, 69.5, 32.4],
-        [3,  25.4,   57, 25.7],
-        [4,  11.7, 18.8, 10.5],
-        [5,  11.9, 17.6, 10.4],
-        [6,   8.8, 13.6,  7.7],
-        [7,   7.6, 12.3,  9.6],
-        [8,  12.3, 29.2, 10.6],
-        [9,  16.9, 42.9, 14.8],
-        [10, 12.8, 30.9, 11.6],
-        [11,  5.3,  7.9,  4.7],
-        [12,  6.6,  8.4,  5.2],
-        [13,  4.8,  6.3,  3.6],
-        [14,  4.2,  6.2,  3.4]
-      ]);
-
-      var options = {
-        chart: {
-          title: 'Box Office Earnings in First Two Weeks of Opening',
-          subtitle: 'in millions of dollars (USD)'
-        },
-        width: 900,
-        height: 500,
-        axes: {
-          x: {
-            0: {side: 'top'}
-          }
-        }
-      };
-
-      var chart = new google.charts.Line(document.getElementById('line_top_x'));
-
-      chart.draw(data, options);
-    }
-  </script>
-   <script src="/bower/Chart.js/dist/Chart.min.js"></script>
+   <script src="/bower/Chart.js/dist/Chart.bundle.js"></script>
  
 
 </head>
 <body>
 
-<canvas id="myChart" width="400" height="400"></canvas>
-
-
-
+<canvas id="myChart" width="300" height="150"></canvas>
 
 <div class="ct-chart ct-perfect-fourth"></div>
 
@@ -89,21 +39,18 @@
         $('time').html('Last Update:' + new Date());
     });
 
-    socket.on("update", function (data) {
 
-    	$("#data").append("<br/>" + new Date() + " - " + data);
-    	console.log(data);
-    });
-
-    </script>
+var dData = function() {
+  return Math.round(Math.random() * 90) + 10;
+};
 
 
-<script type="text/javascript">
 var data = {
-    labels: ["January", "February", "March", "April", "May", "June", "July"],
+    labels: [],
     datasets: [
         {
-            label: "My First dataset",
+            label: "Temperature",
+       
             fill: false,
             lineTension: 0.1,
             backgroundColor: "rgba(75,192,192,0.4)",
@@ -121,7 +68,7 @@ var data = {
             pointHoverBorderWidth: 2,
             pointRadius: 1,
             pointHitRadius: 10,
-            data: [65, 59, 80, 81, 56, 55, 40],
+            data: [],
         }
     ]
 };  
@@ -133,21 +80,43 @@ var myLineChart = new Chart(ctx, {
     data: data,
     options: {
         xAxes: [{
-            display: false
+            display: true
         }]
     }
 });
 
-/*
-setTimeout(function() {
-	update({
-  labels: ['ssMonsday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-  series: [
-    [6,2,5,3,77],[2,99,44,67,88],[7,8,9,10,44]
-  ]
-},null,false);
-}, 20000);
-*/
+
+var index=0;
+ socket.on("update", function (data) {
+
+    	$("#data").append("<br/>" + new Date() + " - " + data);
+    	console.log(data);
+
+		var regData = data.match(/\(1\:42\).+data:(.+)/);
+
+var index;
+
+		if(regData) {
+			index = myLineChart.data.datasets[0].data.length;
+
+			
+
+			var d = new Date(); // for now
+			d.getHours(); // => 9
+			d.getMinutes(); // =>  30
+			d.getSeconds(); // => 51
+			var tme = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+
+			myLineChart.data.datasets[0].data[index] = regData[1]; 
+
+			myLineChart.data.labels[index] = tme;
+			myLineChart.update();
+
+		} else {
+			//alert(regData);
+		};
+	});
+
 
 </script>
 </body>
