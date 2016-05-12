@@ -1,5 +1,9 @@
-<html>
+<!DOCTYPE html>
 <head>
+	<meta charset="utf-8">
+	
+<script src="/bower/jquery/dist/jquery.min.js"></script>
+
   <script type="text/javascript" src="/public/loader.js"></script>
     <script type="text/javascript">
       google.charts.load('current', {'packages':['line']});
@@ -49,8 +53,21 @@
       chart.draw(data, options);
     }
   </script>
+   <script src="/bower/Chart.js/dist/Chart.min.js"></script>
+ 
+
 </head>
 <body>
+
+<canvas id="myChart" width="400" height="400"></canvas>
+
+
+
+
+<div class="ct-chart ct-perfect-fourth"></div>
+
+
+
   <div id="line_top_x"></div>
 
        <time></time>
@@ -59,8 +76,7 @@
 <div id="data">xx</div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/bower/jquery/dist/jquery.min.js">
-    </script>
+    
     <script>
     // creating a new websocket
     var socket = io.connect('http://localhost:8000');
@@ -82,5 +98,57 @@
     </script>
 
 
+<script type="text/javascript">
+var data = {
+    labels: ["January", "February", "March", "April", "May", "June", "July"],
+    datasets: [
+        {
+            label: "My First dataset",
+            fill: false,
+            lineTension: 0.1,
+            backgroundColor: "rgba(75,192,192,0.4)",
+            borderColor: "rgba(75,192,192,1)",
+            borderCapStyle: 'butt',
+            borderDash: [],
+            borderDashOffset: 0.0,
+            borderJoinStyle: 'miter',
+            pointBorderColor: "rgba(75,192,192,1)",
+            pointBackgroundColor: "#fff",
+            pointBorderWidth: 1,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: "rgba(75,192,192,1)",
+            pointHoverBorderColor: "rgba(220,220,220,1)",
+            pointHoverBorderWidth: 2,
+            pointRadius: 1,
+            pointHitRadius: 10,
+            data: [65, 59, 80, 81, 56, 55, 40],
+        }
+    ]
+};  
+
+var ctx = $("#myChart");
+
+var myLineChart = new Chart(ctx, {
+    type: 'line',
+    data: data,
+    options: {
+        xAxes: [{
+            display: false
+        }]
+    }
+});
+
+/*
+setTimeout(function() {
+	update({
+  labels: ['ssMonsday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+  series: [
+    [6,2,5,3,77],[2,99,44,67,88],[7,8,9,10,44]
+  ]
+},null,false);
+}, 20000);
+*/
+
+</script>
 </body>
 </html>
