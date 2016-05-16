@@ -11,10 +11,14 @@
 
 </head>
 <body>
+<canvas id="myChart2" width="400" height="200"></canvas>
 
-<canvas id="myChart" width="300" height="150"></canvas>
+<canvas id="myChart" width="400" height="200"></canvas>
 
 <div class="ct-chart ct-perfect-fourth"></div>
+
+
+
 
 
 
@@ -28,6 +32,21 @@
     <script src="/socket.io/socket.io.js"></script>
     
     <script>
+
+(function() {
+    // The following code will be enclosed within an anonymous function
+    var foo = "Goodbye World!";
+    document.write("<p>Inside our anonymous function foo means '" + foo + '".</p>');
+})(); // We call our anonymous function immediately
+
+
+
+//global scope
+    var regData;
+    var jsonData;
+    //var data;
+
+
     // creating a new websocket
     var socket = io.connect('http://localhost:8000');
     // on every message recived we print the new datas inside the #container div
@@ -39,6 +58,10 @@
         $('time').html('Last Update:' + new Date());
     });
 
+    socket.on('disconnect', function(){
+      socket.socket.reconnectionDelay /= 2;
+  });
+
 
 var dData = function() {
   return Math.round(Math.random() * 90) + 10;
@@ -49,7 +72,7 @@ var data = {
     labels: [],
     datasets: [
         {
-            label: "Temperature",
+            label: "Motion Sensorxx",
        
             fill: false,
             lineTension: 0.1,
@@ -73,49 +96,207 @@ var data = {
     ]
 };  
 
+
+var data2 = {
+    labels: [],
+    datasets: [
+        {
+            label: "Temp & Hum",
+       
+            fill: true,
+            lineTension: 0.1,
+            backgroundColor: "rgba(75,192,192,0.4)",
+            borderColor: "rgba(75,192,192,1)",
+            borderCapStyle: 'butt',
+            borderDash: [],
+            borderDashOffset: 0.0,
+            borderJoinStyle: 'miter',
+            pointBorderColor: "rgba(75,192,192,1)",
+            pointBackgroundColor: "#fff",
+            pointBorderWidth: 1,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: "rgba(75,192,192,1)",
+            pointHoverBorderColor: "rgba(220,220,220,1)",
+            pointHoverBorderWidth: 2,
+            pointRadius: 1,
+            pointHitRadius: 10,
+            data: [],
+                scale: 10,
+                fillColor : "rgba(220,220,220,0.5)",
+                strokeColor : "rgba(220,220,220,0.8)",
+                highlightFill: "rgba(220,220,220,0.75)",
+                highlightStroke: "rgba(220,220,220,1)",
+                scaleOverride:true,
+                scaleSteps:9,
+                scaleStartValue:0,
+                scaleStepWidth:1
+        }
+    ]
+};  
+
+
 var ctx = $("#myChart");
 
+
+
 var myLineChart = new Chart(ctx, {
-    type: 'line',
+    type: 'bar',
     data: data,
     options: {
         xAxes: [{
             display: true
-        }]
+        }],
+         responsive: false,
+    maintainAspectRatio: false
     }
 });
 
+var ctx2 = $("#myChart2");
 
-var index=0;
- socket.on("update", function (data) {
 
-    	$("#data").append("<br/>" + new Date() + " - " + data);
-    	console.log(data);
 
-		var regData = data.match(/\(1\:42\).+data:(.+)/);
 
-var index;
+var myLineChart2 = new Chart(ctx2, {
+    type: 'line',
+    data: data2,
+    options: {
+        
+ scales: {
+            xAxes: [{
+                display: true,
+                override: {
+                    stepWidth: 20,
+                    start: 0,
+                    steps: 10
+                }
+            }]
+        },
+         responsive: false,
+    maintainAspectRatio: false
+     
+}
+});
 
-		if(regData) {
-			index = myLineChart.data.datasets[0].data.length;
 
-			
+var devices = {
+    "items": [
 
-			var d = new Date(); // for now
-			d.getHours(); // => 9
-			d.getMinutes(); // =>  30
-			d.getSeconds(); // => 51
-			var tme = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+    {"name": "motion sensor", "idx": 43, "sensorid": 1, "description": "blah blah", "chart": 1},
+    {"name": "temp&hum", "idx": 42, "sensorid": 1, "description": "blah blah", "chart": 2},
+    {"name": "fish", "idx": 44, "sensorid": 1, "description": "blah blah", "chart": 3},
+    {"name": "cat", "idx": 45, "sensorid": 1, "description": "blah blah", "chart": 4}
+    ]};
 
-			myLineChart.data.datasets[0].data[index] = regData[1]; 
+//$.each( devices.items, function( indx, item ) {
+//item.idx
+//}
 
-			myLineChart.data.labels[index] = tme;
-			myLineChart.update();
 
-		} else {
-			//alert(regData);
-		};
-	});
+
+
+socket.on("update", function (jsonData2) {
+
+    jsonData = JSON.parse(jsonData2);
+
+    $('#container').html(new Date + " " + jsonData.a1 );
+
+    console.log("jsonData: " + jsonData);
+
+if(typeof jsonData =='object')
+{
+    console.log("jsonData is JSON !!");
+    var index;
+    //alert(regData.data + " - " + regData.device);
+    
+$.each( devices.items, function( indx, item ) {
+    // Do somethin
+    //alert(indx + " = " + item.name + ", idx:" + item.idx);
+
+    if(jsonData.a1 == item.idx) {
+        console.log("item " + item.idx + " updated (" + item.name + ")");
+        var tme = getFormattedDate(new Date());
+        $('#container').html("last update: " + tme + " " + item.name + " (" + item.idx + "," + item.sensorid + ")");
+
+
+        switch (jsonData.a1)
+        {
+            case 43:
+                if(jsonData.s == 1) {
+                    console.log("jsonData.a1=" + jsonData.a1 + " for switch 43.");
+                    index = myLineChart.data.datasets[0].data.length;
+                  
+                    myLineChart.data.datasets[0].data[index] = parseFloat(jsonData.data); 
+
+                    myLineChart.data.labels[index] = tme;
+                    myLineChart.update();
+
+                    data2 = "<b>" + item.name + " " + jsonData.a1 + " - s=" + jsonData.s + " " + jsonData.data + "</b>";
+                } else {
+                    console.log("update from "+jsonData.a1+", but wrong sensorid, should be 1 but is " + jsonData.s);
+                }
+                break;
+            case 42:
+                if(jsonData.s == 1) {
+                    index = myLineChart2.data.datasets[0].data.length;
+                    //var d = new Date(); // for now
+                    //d.getHours(); // => 9
+                    //d.getMinutes(); // =>  30
+                    //d.getSeconds(); // => 51
+                   
+                    //d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+
+
+                    myLineChart2.data.datasets[0].data[index] = parseFloat(jsonData.data); 
+
+                    myLineChart2.data.labels[index] = tme;
+                    myLineChart2.update();
+
+                    data2 = "<b>" + item.name + " " + jsonData.a1 + " - s=" + jsonData.s + " " + jsonData.data + "</b>";
+                } else {
+                      console.log("update from "+jsonData.a1+", but wrong sensorid, should be 1 but is " + jsonData.s);
+                }
+
+                break;
+            default: 
+                data2 = "" + item.name + " " + jsonData.a1 + " - (not in graph)";
+                break;
+        }
+
+       
+    } else {
+       // console.log("X " + item.name + "");
+    }
+
+});
+
+
+
+    $("#data").append("<br/>" + getFormattedDate(new Date()) + " - " + data2);
+    console.log(jsonData.a1);
+
+} else {
+    console.log("error, jsonData is type (" + (typeof jsonData) + ")... It needs to be JSON.");
+
+}
+
+});
+
+function getFormattedDate(date) {
+  var year = date.getFullYear();
+  var month = (1 + date.getMonth()).toString();
+  month = month.length > 1 ? month : '0' + month;
+  var day = date.getDate().toString();
+  day = day.length > 1 ? day : '0' + day;
+  
+  var hh = date.getHours();
+  hh = hh > 9 ? hh : '0' + hh;
+  var mm = date.getMinutes();
+  mm = mm > 9 ? mm : '0' + mm;
+  var ss = date.getSeconds();
+  ss = ss > 9 ? ss : '0' + ss;
+ 
+  return (day + '/' + month + '/' + year + " " + hh + ":" + mm + ":" + ss);
+}
 
 
 </script>

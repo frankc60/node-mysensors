@@ -16,6 +16,8 @@
     "bower": "^1.7.9",
     "express": "^4.13.4",
     "httpdispatcher": "^1.0.0",
+    "mongodb": "^2.1.18",
+    "mongoose": "^4.4.17",
     "serialport": "^3.1.1",
     "socket.io": "^1.4.6",
     "xml2json": "^0.9.1"
