@@ -1,12 +1,36 @@
 //*********************************************
 
-var parser = new require('xml2json');
+//var parser = new require('xml2json');
 var fs = require('fs');
-var express = require('express');  
-var app = express();  
-var server = require('http').createServer(app);  
+var express = require('express');
+var app = express();
+var server = require('http').createServer(app);
 var io = require('socket.io')(server);
-var serialport = require("serialport"); 
+var serialport = require("serialport");
+
+var mongoose = require("mongoose");
+
+
+
+/*
+fs.readdir(__dirname + "/models", function(err, files) {
+	if(err) console.log("ERROR: " + err.message);
+    if(files.indexOf(".js")) {
+        require(__dirname + "/models/" + files);
+        //console.log(__dirname + "/models/" + files + " XXXXXXXXXXXXXXXXXXXXXX");
+    }
+});
+*/
+
+var kittens = require(__dirname + "/models/" + "kitten.js");
+
+kittens.find(function(err,users) {
+	console.log(users);
+});
+
+
+
+
 
 //********************************************************
 //WEB SERVER WITH express, http
@@ -18,7 +42,7 @@ app.use("/public", express.static(__dirname + "/public"));
 
 //process requests
 app.get('/', function(req, res,next) {  
-	console.log("Got a GET request for the homepage");
+	console.log(getFormattedDate(new Date()) + " - Got a GET request for the homepage");
     res.sendFile(__dirname + '/index.html');
 });
 
@@ -32,7 +56,7 @@ app.get('/dashboard', function(req, res,next) {
 //set up server to listen on port 8000
 var srv = server.listen(8000, function () {
 
-  console.log("Server up and running!");
+  console.log(getFormattedDate(new Date()) + " - Server up and running!");
 
 });  
 //********************************************************
@@ -41,7 +65,7 @@ var srv = server.listen(8000, function () {
 //-------------------------------------------------------------------
 // creating a new websocket to keep the content updated without any AJAX request
 io.sockets.on('connection', function(socket) {
-	console.log("io.socket connected!");
+	console.log(getFormattedDate(new Date()) + " - io.socket connected!");
 
 	
 	socket.on('messageFromClient', function (data) { 
@@ -50,6 +74,7 @@ io.sockets.on('connection', function(socket) {
 	
 	socket.on('disconnect', function () { 
 		//WILL BE IGNORED, AS USER HAS GONE!
+        console.log(getFormattedDate(new Date()) + " - socket.disconnected")
 		socket.emit("notification", "socket has disconnected!");
 	});
 });
@@ -61,91 +86,88 @@ io.sockets.on('connection', function(socket) {
 //SERIAL PORT
 var serialConnect = (function() {
 
+    var SerialPort = serialport.SerialPort; 
 
+    var serialPort = new SerialPort("/dev/ttyACM0", {
+      baudrate: 115200,
+      parser: serialport.parsers.readline("\n")
+    });
 
+    //EVENTS
+    serialPort.on('open', showPortOpen);
+    serialPort.on('data', sendSerialData);
+    serialPort.on('close', showPortClose);
+    serialPort.on('error', showError);
+    
+    //*******************************************************************************
+    function showPortOpen() {
+       console.log(getFormattedDate(new Date()) + ' - port open. Data rate: ' + serialPort.options.baudRate);
+    }
+    //*******************************************************************************
+    function sendSerialData(data) {
+        console.log("raw data: " + data);
 
-var SerialPort = serialport.SerialPort; 
+        rePattern = new RegExp(/read\:\s+(\d+)-(\d+)-(\d+)+\ss\=(\d+),c\=(\d+),t\=(\d+),pt\=(\d+),l\=(\d+),sg\=(\d+)\:(.+)/);
 
-var serialPort = new SerialPort("/dev/ttyACM0", {
-  baudrate: 115200,
-  parser: serialport.parsers.readline("\n")
+        //read\:\s+(\d+)-(\d+)-(\d+)+\ss\=(\d+),c\=(\d+),t\=(\d+),pt\=(\d+),l\=(\d+),sg\=(\d+)\:(.+)
+
+        arrMatches = data.match(rePattern);
+
+        /*
+        {
+            "1": 43,
+            "2": 43,
+            "3": 0,
+            "s": 1,
+            "c": 1,
+            "t": 16,
+            "pt": 0,
+            "l": 1,
+            "sg": 0,
+            "data": 1222
+        }
+        */
+        jsonData = "";
+        if(arrMatches) {
+            jsonData = '{ "a1": ' + 
+            arrMatches[1] + ',"a2": ' + 
+            arrMatches[2] + ',"a3": ' + 
+            arrMatches[3] + ',"s": ' + 
+            arrMatches[4] + ',"c": ' + 
+            arrMatches[5] + ',"t": ' + 
+            arrMatches[6] + ',"pt": ' + 
+            arrMatches[7] + ',"l": ' + 
+            arrMatches[8] + ',"sg": ' + 
+            arrMatches[9] + ',"data": "' + 
+            arrMatches[10] + '" }';
+
+            //jsonData = JSON.parse(data);
+
+            console.log(getFormattedDate(new Date()) + " - converted to json: %j", jsonData);
+
+            io.emit('update', jsonData);			
+
+        } else {
+
+            //data2 = " [ignored]";
+            console.log(getFormattedDate(new Date()) + " - data not correct format, nothing sent to client!");
+        }
+
+    }
+    //*******************************************************************************
+    function showPortClose() {
+       console.log(getFormattedDate(new Date()) + ' - port closed.');
+       console.log(getFormattedDate(new Date()) + " - attempting to reconnect...");
+       serialConnect();
+
+    }
+    //*******************************************************************************
+    function showError(error) {
+       console.log(getFormattedDate(new Date()) + ' - Serial port error: ' + error);
+    }
+    //*******************************************************************************
 });
-
-serialPort.on('open', showPortOpen);
-serialPort.on('data', sendSerialData);
-serialPort.on('close', showPortClose);
-serialPort.on('error', showError);
-
-
-function showPortOpen() {
-   console.log('--port open. Data rate: ' + serialPort.options.baudRate);
-}
- 
-function sendSerialData(data) {
-   	console.log("raw data: " + data);
-
-	rePattern = new RegExp(/read\:\s+(\d+)-(\d+)-(\d+)+\ss\=(\d+),c\=(\d+),t\=(\d+),pt\=(\d+),l\=(\d+),sg\=(\d+)\:(.+)/);
-
-	//read\:\s+(\d+)-(\d+)-(\d+)+\ss\=(\d+),c\=(\d+),t\=(\d+),pt\=(\d+),l\=(\d+),sg\=(\d+)\:(.+)
-
-	arrMatches = data.match(rePattern);
-
-	/*
-	{
-		"1": 43,
-		"2": 43,
-		"3": 0,
-		"s": 1,
-		"c": 1,
-		"t": 16,
-		"pt": 0,
-		"l": 1,
-		"sg": 0,
-		"data": 1222
-	}
-	*/
-	jsonData = "";
-	if(arrMatches) {
-		jsonData = '{ "a1": ' + 
-		arrMatches[1] + ',"a2": ' + 
-		arrMatches[2] + ',"a3": ' + 
-		arrMatches[3] + ',"s": ' + 
-		arrMatches[4] + ',"c": ' + 
-		arrMatches[5] + ',"t": ' + 
-		arrMatches[6] + ',"pt": ' + 
-		arrMatches[7] + ',"l": ' + 
-		arrMatches[8] + ',"sg": ' + 
-		arrMatches[9] + ',"data": "' + 
-		arrMatches[10] + '" }';
-
-		//jsonData = JSON.parse(data);
-
-		console.log("converted to json: %j", jsonData);
-
-		io.emit('update', jsonData);			
-	
-	} else {
-
-		//data2 = " [ignored]";
-		console.log("data not correct format, nothing sent to client!");
-	}
-	
-}
-
- 
-function showPortClose() {
-   console.log('--port closed.');
-   console.log("attempting to reconnect...");
-   serialConnect();
-
-}
- 
-function showError(error) {
-   console.log('Serial port error: ' + error);
-}
-
-});
-
+//*******************************************************************************
 serialConnect();
 //===============================================================
 /*
@@ -175,3 +197,29 @@ node-id;child-sensor-id;message-type;ack;sub-type;payload\n
 //animal["ack"] = { sound: ‘moo’, age:5 };
 //animal["sub-type"] = { sound: ‘moo’, age:5 };
 //animal["payload"] = { sound: ‘moo’, age:5 };
+
+//-------------------------------------------------------
+
+/*
+mongoose.model("Kitten").find(function(err,users) {
+	console.log(users);
+});
+*/
+//*******************************************************************************
+function getFormattedDate(date) {
+  var year = date.getFullYear();
+  var month = (1 + date.getMonth()).toString();
+  month = month.length > 1 ? month : '0' + month;
+  var day = date.getDate().toString();
+  day = day.length > 1 ? day : '0' + day;
+  
+  var hh = date.getHours();
+  hh = hh > 9 ? hh : '0' + hh;
+  var mm = date.getMinutes();
+  mm = mm > 9 ? mm : '0' + mm;
+  var ss = date.getSeconds();
+  ss = ss > 9 ? ss : '0' + ss;
+ 
+  return (day + '/' + month + '/' + year + " " + hh + ":" + mm + ":" + ss);
+}
+//*******************************************************************************

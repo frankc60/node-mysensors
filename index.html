@@ -48,8 +48,16 @@
 
 
     // creating a new websocket
-    var socket = io.connect('http://localhost:8000');
-    // on every message recived we print the new datas inside the #container div
+    var socket = new io.connect('http://localhost:8000', {
+        'reconnection': true,
+        'reconnectionDelay': 2000,
+        'reconnectionDelayMax' : 60000,
+        'reconnectionAttempts': 30
+    });
+        
+        
+        
+        
     socket.on('notification', function (data) {
         // convert the json string into a valid javascript object
         var _data = JSON.parse(data);
@@ -59,9 +67,21 @@
     });
 
     socket.on('disconnect', function(){
-      socket.socket.reconnectionDelay /= 2;
-  });
+        console.log(getFormattedDate(new Date()) + " - socket.io has disconnected!!");        
+    }); 
+    socket.on('reconnect', function(){
+        console.log(getFormattedDate(new Date()) + " - reconnected socket.io");        
+    });
+    socket.on('reconnecting', function(){
+        console.log(getFormattedDate(new Date()) + " - trying to reconnect the socket.io...");
+    });
+    socket.on('reconnect_failed', function(){ 
+        console.log(getFormattedDate(new Date()) + " - socket.io reconnect failed...END");
+    });
+        
+        
 
+    
 
 var dData = function() {
   return Math.round(Math.random() * 90) + 10;
@@ -198,13 +218,13 @@ socket.on("update", function (jsonData2) {
 
     jsonData = JSON.parse(jsonData2);
 
-    $('#container').html(new Date + " " + jsonData.a1 );
+    $('#container').html(getFormattedDate(new Date()) + " - " + jsonData.a1 );
 
-    console.log("jsonData: " + jsonData);
+    console.log(getFormattedDate(new Date()) + " - jsonData: " + jsonData);
 
 if(typeof jsonData =='object')
 {
-    console.log("jsonData is JSON !!");
+    console.log(getFormattedDate(new Date()) + " - jsonData is JSON !!");
     var index;
     //alert(regData.data + " - " + regData.device);
     
@@ -213,8 +233,9 @@ $.each( devices.items, function( indx, item ) {
     //alert(indx + " = " + item.name + ", idx:" + item.idx);
 
     if(jsonData.a1 == item.idx) {
-        console.log("item " + item.idx + " updated (" + item.name + ")");
         var tme = getFormattedDate(new Date());
+        console.log(tme + " - item " + item.idx + " updated (" + item.name + ")");
+        
         $('#container').html("last update: " + tme + " " + item.name + " (" + item.idx + "," + item.sensorid + ")");
 
 
@@ -222,7 +243,7 @@ $.each( devices.items, function( indx, item ) {
         {
             case 43:
                 if(jsonData.s == 1) {
-                    console.log("jsonData.a1=" + jsonData.a1 + " for switch 43.");
+                    console.log(getFormattedDate(new Date()) + " - jsonData.a1=" + jsonData.a1 + " for switch 43.");
                     index = myLineChart.data.datasets[0].data.length;
                   
                     myLineChart.data.datasets[0].data[index] = parseFloat(jsonData.data); 
@@ -232,7 +253,7 @@ $.each( devices.items, function( indx, item ) {
 
                     data2 = "<b>" + item.name + " " + jsonData.a1 + " - s=" + jsonData.s + " " + jsonData.data + "</b>";
                 } else {
-                    console.log("update from "+jsonData.a1+", but wrong sensorid, should be 1 but is " + jsonData.s);
+                    console.log(getFormattedDate(new Date()) + " - update from "+jsonData.a1+", but wrong sensorid, should be 1 but is " + jsonData.s);
                 }
                 break;
             case 42:
@@ -272,10 +293,10 @@ $.each( devices.items, function( indx, item ) {
 
 
     $("#data").append("<br/>" + getFormattedDate(new Date()) + " - " + data2);
-    console.log(jsonData.a1);
+    console.log(getFormattedDate(new Date()) + " - " + data2);
 
 } else {
-    console.log("error, jsonData is type (" + (typeof jsonData) + ")... It needs to be JSON.");
+    console.log(getFormattedDate(new Date()) + " - error, jsonData is type (" + (typeof jsonData) + ")... It needs to be JSON.");
 
 }
 
