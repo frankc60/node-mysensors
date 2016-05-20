@@ -11,35 +11,21 @@
 
 </head>
 <body>
-<canvas id="myChart2" width="400" height="200"></canvas>
+<div style="width: 75%;">
+        <canvas id="myChart2"></canvas>
+    </div>
 
 <canvas id="myChart" width="400" height="200"></canvas>
 
 <div class="ct-chart ct-perfect-fourth"></div>
 
 
+<div id="container">Last Update:</div>
+<div id="data">appended data</div>
 
+<script src="/socket.io/socket.io.js"></script>
 
-
-
-  <div id="line_top_x"></div>
-
-       <time></time>
-        <div id="container">Try to change your xml data to update this content</div>
-
-<div id="data">xx</div>
-
-    <script src="/socket.io/socket.io.js"></script>
-    
-    <script>
-
-(function() {
-    // The following code will be enclosed within an anonymous function
-    var foo = "Goodbye World!";
-    document.write("<p>Inside our anonymous function foo means '" + foo + '".</p>');
-})(); // We call our anonymous function immediately
-
-
+<script>
 
 //global scope
     var regData;
@@ -55,9 +41,6 @@
         'reconnectionAttempts': 30
     });
         
-        
-        
-        
     socket.on('notification', function (data) {
         // convert the json string into a valid javascript object
         var _data = JSON.parse(data);
@@ -67,28 +50,20 @@
     });
 
     socket.on('disconnect', function(){
-        console.log(getFormattedDate(new Date()) + " - socket.io has disconnected!!");        
+        console.log(getFormattedDate(new Date()) + " - socket.io has disconnected!!");
     }); 
     socket.on('reconnect', function(){
         console.log(getFormattedDate(new Date()) + " - reconnected socket.io");        
     });
     socket.on('reconnecting', function(){
-        console.log(getFormattedDate(new Date()) + " - trying to reconnect the socket.io...");
+        console.log(getFormattedDate(new Date()) + " - trying to reconnect the socket.io, please wait...");
     });
     socket.on('reconnect_failed', function(){ 
-        console.log(getFormattedDate(new Date()) + " - socket.io reconnect failed...END");
+        console.log(getFormattedDate(new Date()) + " - socket.io reconnection failed...END");
     });
         
-        
 
-    
-
-var dData = function() {
-  return Math.round(Math.random() * 90) + 10;
-};
-
-
-var data = {
+var chart1data = {
     labels: [],
     datasets: [
         {
@@ -116,87 +91,67 @@ var data = {
     ]
 };  
 
+//make deep copy of objects, save retyping again. jQuery.extend( [deep ], target, object1 [, objectN ] )
+var chart2data = jQuery.extend(true, {}, chart1data);
 
-var data2 = {
-    labels: [],
-    datasets: [
-        {
-            label: "Temp & Hum",
-       
-            fill: true,
-            lineTension: 0.1,
-            backgroundColor: "rgba(75,192,192,0.4)",
-            borderColor: "rgba(75,192,192,1)",
-            borderCapStyle: 'butt',
-            borderDash: [],
-            borderDashOffset: 0.0,
-            borderJoinStyle: 'miter',
-            pointBorderColor: "rgba(75,192,192,1)",
-            pointBackgroundColor: "#fff",
-            pointBorderWidth: 1,
-            pointHoverRadius: 5,
-            pointHoverBackgroundColor: "rgba(75,192,192,1)",
-            pointHoverBorderColor: "rgba(220,220,220,1)",
-            pointHoverBorderWidth: 2,
-            pointRadius: 1,
-            pointHitRadius: 10,
-            data: [],
-                scale: 10,
-                fillColor : "rgba(220,220,220,0.5)",
-                strokeColor : "rgba(220,220,220,0.8)",
-                highlightFill: "rgba(220,220,220,0.75)",
-                highlightStroke: "rgba(220,220,220,1)",
-                scaleOverride:true,
-                scaleSteps:9,
-                scaleStartValue:0,
-                scaleStepWidth:1
-        }
-    ]
-};  
+//chart2.data.
+chart2data.datasets[0].label = "Temperature";
+chart2data.datasets[0].fill = true;
 
 
+//create new chart---------------------
 var ctx = $("#myChart");
-
-
-
 var myLineChart = new Chart(ctx, {
     type: 'bar',
-    data: data,
+    data: chart1data,
     options: {
-        xAxes: [{
-            display: true
-        }],
-         responsive: false,
-    maintainAspectRatio: false
+        scales: {
+            xAxes: [{
+               display: true,
+               type: "time"
+            }]
+        },
+        responsive: false,
+        maintainAspectRatio: false
     }
 });
 
+//------------------------------------
+
+//create new chart---------------------
 var ctx2 = $("#myChart2");
-
-
-
-
 var myLineChart2 = new Chart(ctx2, {
     type: 'line',
-    data: data2,
-    options: {
-        
- scales: {
-            xAxes: [{
-                display: true,
-                override: {
-                    stepWidth: 20,
-                    start: 0,
-                    steps: 10
-                }
-            }]
+    data: chart2data,
+     options: {
+        title: {
+            display:true,
+            text: "I am Great!!"
         },
-         responsive: false,
-    maintainAspectRatio: false
-     
-}
+        tooltips: {
+            mode: 'label',
+        },
+        scales: {
+            xAxes: [{
+                type: "time",
+                time: {
+                    tooltipFormat: 'll HH:mm'
+                },
+                scaleLabel: {
+                    show: true,
+                    labelString: 'Month'
+                }
+            }],
+            yAxes: [{
+                scaleLabel: {
+                    show: true,
+                    labelString: 'Value'
+                },
+            }]
+        }
+    }
 });
-
+//------------------------------------
 
 var devices = {
     "items": [
@@ -207,98 +162,99 @@ var devices = {
     {"name": "cat", "idx": 45, "sensorid": 1, "description": "blah blah", "chart": 4}
     ]};
 
-//$.each( devices.items, function( indx, item ) {
-//item.idx
-//}
 
+var updatesx =false;
 
-
-
+var jsonData2;
+        
 socket.on("update", function (jsonData2) {
 
-    jsonData = JSON.parse(jsonData2);
+    //jsonData = JSON.parse(jsonData2); //appears to break stuff... maybe because already json..
 
-    $('#container').html(getFormattedDate(new Date()) + " - " + jsonData.a1 );
+    console.log(getFormattedDate(new Date()) + " - jsonData2: " +  JSON.stringify(jsonData2));
 
-    console.log(getFormattedDate(new Date()) + " - jsonData: " + jsonData);
-
-if(typeof jsonData =='object')
-{
-    console.log(getFormattedDate(new Date()) + " - jsonData is JSON !!");
-    var index;
-    //alert(regData.data + " - " + regData.device);
+   jsonData = jsonData2;
     
-$.each( devices.items, function( indx, item ) {
-    // Do somethin
-    //alert(indx + " = " + item.name + ", idx:" + item.idx);
+    if(typeof jsonData =='object')
+    {
+        console.log(getFormattedDate(new Date()) + " - jsonData is JSON !!");
+        var index;
+        //alert(regData.data + " - " + regData.device);
 
-    if(jsonData.a1 == item.idx) {
-        var tme = getFormattedDate(new Date());
-        console.log(tme + " - item " + item.idx + " updated (" + item.name + ")");
-        
-        $('#container').html("last update: " + tme + " " + item.name + " (" + item.idx + "," + item.sensorid + ")");
+            $.each( devices.items, function( indx, item ) {
+            // Do somethin
+            //alert(indx + " = " + item.name + ", idx:" + item.idx);
 
+            if(jsonData.a1 == item.idx) {
+                var tme = getFormattedDate(new Date());
+                console.log(tme + " - item " + item.idx + " updated (" + item.name + ")");
 
-        switch (jsonData.a1)
-        {
-            case 43:
-                if(jsonData.s == 1) {
-                    console.log(getFormattedDate(new Date()) + " - jsonData.a1=" + jsonData.a1 + " for switch 43.");
-                    index = myLineChart.data.datasets[0].data.length;
-                  
-                    myLineChart.data.datasets[0].data[index] = parseFloat(jsonData.data); 
+                $('#container').html("last update: " + tme + " " + item.name + " (" + item.idx + "," + item.sensorid + ")");
 
-                    myLineChart.data.labels[index] = tme;
-                    myLineChart.update();
+             
+                switch (jsonData.a1)
+                {
+                    case 43:
+                        if(jsonData.s == 1) {
+                            console.log(getFormattedDate(new Date()) + " - jsonData.a1=" + jsonData.a1 + " for switch 43.");
+                            index = myLineChart.data.datasets[0].data.length;
 
-                    data2 = "<b>" + item.name + " " + jsonData.a1 + " - s=" + jsonData.s + " " + jsonData.data + "</b>";
-                } else {
-                    console.log(getFormattedDate(new Date()) + " - update from "+jsonData.a1+", but wrong sensorid, should be 1 but is " + jsonData.s);
+                            myLineChart.data.datasets[0].data[index] = parseFloat(jsonData.data); 
+
+//need to convert to iso time, as is issue for chart.js: https://github.com/moment/moment/issues/1407
+                            var timestamp = new Date(jsonData.timestamp);
+                            var isoTimestamp = timestamp;
+
+                            myLineChart.data.labels[index] = isoTimestamp;
+                            myLineChart.update();
+
+                            data2 = "<b>" + item.name + " " + jsonData.a1 + " - s=" + jsonData.s + " " + jsonData.data + "</b>";
+                            updatesx = true;
+                        } else {
+                            console.log(getFormattedDate(new Date()) + " - update from "+jsonData.a1+", but wrong sensorid, should be 1 but is " + jsonData.s);
+                        }
+                        break;
+                    case 42:
+                        //alert(lineChartNodeID);
+                        if(jsonData.s == 1) {
+                            index = myLineChart2.data.datasets[0].data.length;
+                       
+                            myLineChart2.data.datasets[0].data[index] = parseFloat(jsonData.data); 
+                            myLineChart2.data.labels[index] = new Date(jsonData.timestamp);
+                            myLineChart2.update();
+
+                            data2 = "<b>" + item.name + " " + jsonData.a1 + " - s=" + jsonData.s + " " + jsonData.data + "</b>";
+                            updatesx = true;
+                        } else {
+                              console.log("update from "+jsonData.a1+", but wrong sensorid, should be 1 but is " + jsonData.s);
+                        }
+                        break;
+                    default: 
+                        data2 = "" + item.name + " (" + jsonData.a1 + ") - (not in graph)";
+                        updatesx = true;
+                        break;
                 }
-                break;
-            case 42:
-                if(jsonData.s == 1) {
-                    index = myLineChart2.data.datasets[0].data.length;
-                    //var d = new Date(); // for now
-                    //d.getHours(); // => 9
-                    //d.getMinutes(); // =>  30
-                    //d.getSeconds(); // => 51
-                   
-                    //d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
 
+            //UPDATE TICKER ON PAGE OF ALL PAST UPDATES.
+            if(updatesx) {
+                $("#data").append("<br/>" + getFormattedDate(new Date()) + " - " + data2);
+                console.log(getFormattedDate(new Date()) + " - " + data2);
+                data2="zzz";
+                updatesx=false;
+            }
+           
+            } else {
+           // console.log("X " + item.name + "");
+            }
 
-                    myLineChart2.data.datasets[0].data[index] = parseFloat(jsonData.data); 
+        }); //for each
 
-                    myLineChart2.data.labels[index] = tme;
-                    myLineChart2.update();
+    
 
-                    data2 = "<b>" + item.name + " " + jsonData.a1 + " - s=" + jsonData.s + " " + jsonData.data + "</b>";
-                } else {
-                      console.log("update from "+jsonData.a1+", but wrong sensorid, should be 1 but is " + jsonData.s);
-                }
-
-                break;
-            default: 
-                data2 = "" + item.name + " " + jsonData.a1 + " - (not in graph)";
-                break;
-        }
-
-       
     } else {
-       // console.log("X " + item.name + "");
+        console.log(getFormattedDate(new Date()) + " - error, jsonData is type (" + (typeof jsonData) + ")... It needs to be JSON.");
+
     }
-
-});
-
-
-
-    $("#data").append("<br/>" + getFormattedDate(new Date()) + " - " + data2);
-    console.log(getFormattedDate(new Date()) + " - " + data2);
-
-} else {
-    console.log(getFormattedDate(new Date()) + " - error, jsonData is type (" + (typeof jsonData) + ")... It needs to be JSON.");
-
-}
 
 });
 

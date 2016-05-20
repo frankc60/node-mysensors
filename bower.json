@@ -17,6 +17,7 @@
   ],
   "dependencies": {
     "jquery": "^2.2.3",
-    "Chart.js": "^2.1.2"
+    "Chart.js": "^2.1.2",
+    "Chart.Scatter.js": "^1.1.3"
   }
 }

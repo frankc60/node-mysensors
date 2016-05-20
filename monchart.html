@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+    <script src="/bower/jquery/dist/jquery.min.js"></script>
+    <script src="/bower/Chart.js/dist/Chart.bundle.js"></script>
+</head>
+<body>
+    <canvas id="myChart2" width="900" height="400"></canvas>
+    <div class="ct-chart ct-perfect-fourth"></div>
+
+    <div id="clicker"><a href="#">get mongoose data</a> </div>
+    <span id="data2fetch"></span>
+    <br/>
+  
+NodeID:<input type="text" name="nodeid" id="nodeid" value="43" />
+SensorID:<input type="text" name="sensorid" id="sensorid" value="1" />
+<select id="nodeIDselector">
+    <option value="null"></option>
+</select>
+
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+    
+    $( document ).ready(function() {
+        //default html
+        $("#data2fetch").html($("#nodeid").val() + "-"+ $("#sensorid").val());
+
+        //onchange update data2fetch html
+        $('input[name=nodeid]').change(function() { $("#data2fetch").html($("#nodeid").val() + "-"+ $("#sensorid").val()); });
+        $('input[name=sensorid]').change(function() { $("#data2fetch").html($("#nodeid").val() + "-"+ $("#sensorid").val()); });
+
+        $("#clicker").click(function() {
+                var obj = {nodeid: $("#nodeid").val(), sensorid: $("#sensorid").val()};
+                socket.emit('messageFromClient', obj);
+                console.log("messageFromClient emitted!" + JSON.stringify(obj));    
+        });
+
+var devices = {
+    "items": [
+
+    {"name": "motion sensor", "idx": 43, "sensorid": 1, "description": "blah blah", "chart": 1},
+    {"name": "temperature", "idx": 42, "sensorid": 1, "description": "blah blah", "chart": 2},
+    {"name": "humidity", "idx": 42, "sensorid": 0, "description": "blah blah", "chart": 2},
+    {"name": "fish", "idx": 44, "sensorid": 1, "description": "blah blah", "chart": 3},
+    {"name": "cat", "idx": 45, "sensorid": 1, "description": "blah blah", "chart": 4}
+]};
+
+
+var dropdownChange = function() {
+    var option = '';
+    for (var i=0;i<devices.items.length;i++){
+        option += '<option id="1" value="'+ devices.items[i].idx + ','+ devices.items[i].sensorid + '">' + devices.items[i].name + '</option>';
+    }
+    $('#nodeIDselector').append(option);
+};
+
+dropdownChange();
+
+$('#nodeIDselector').change(function(){
+    var d = $(this).val(); //d = value of the dropdown item, it is in format (nodeid,sensorid)
+    var arrData = d.split(','); //split value into 2 item array
+    $('#nodeid').val(arrData[0]); //add one item to nodeid
+    $('#sensorid').val(arrData[1]);
+});
+
+
+
+
+    }); //jquery ready function()
+      
+
+    var gg;
+//*********SOCKET.IO*********** 
+    var socket = new io.connect('http://localhost:8000', {
+        'reconnection': true,
+        'reconnectionDelay': 2000,
+        'reconnectionDelayMax' : 60000,
+        'reconnectionAttempts': 30
+    });
+    
+    socket.on("update2", function (socketData) {
+        console.log(socketData);
+        gg = socketData;
+        myLineChart2.destroy();
+        initChart();
+
+        var nid = $("#nodeid").val();
+        var sid = $("#sensorid").val();
+
+        for (i = 0; i < gg.length; i++) { 
+            
+            if(gg[i].a1==nid & gg[i].s==sid)
+            {
+                index = myLineChart2.data.datasets[0].data.length;
+                myLineChart2.data.datasets[0].data[index] = parseFloat(gg[i].data); 
+                myLineChart2.data.labels[index] = gg[i].timestamp;
+                myLineChart2.update();
+                //draw();
+            }
+            else
+            {
+                console.log("wrong nid and sid: " + nid + "," + sid);
+
+            }
+        } //for
+    }); //socket.on
+     
+    var myLineChart2;
+    
+    initChart = (function(){
+        var data2 = {
+            labels: [],
+            datasets: [{
+                label: "Temp & Hum",
+                fill: true,
+                lineTension: 0.1,
+                backgroundColor: "rgba(75,192,192,0.4)",
+                borderColor: "rgba(75,192,192,1)",
+                borderCapStyle: 'butt',
+                borderDash: [],
+                borderDashOffset: 0.0,
+                borderJoinStyle: 'miter',
+                pointBorderColor: "rgba(75,192,192,1)",
+                pointBackgroundColor: "#fff",
+                pointBorderWidth: 2,
+                pointHoverRadius: 8,
+                pointHoverBackgroundColor: "rgba(75,192,192,1)",
+                pointHoverBorderColor: "rgba(220,220,220,1)",
+                pointHoverBorderWidth: 4,
+                pointRadius: 2,
+                pointHitRadius: 10,
+                data: []
+            }]
+        };
+   // });     
+    
+    var ctx2 = $("#myChart2");
+
+//this works good !!!, correct property allocation for chartjs
+        myLineChart2 = new Chart(ctx2, {
+            type: 'line',
+            data: data2,
+            options: {
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        position: "top", //working
+                        //type: "time", //needs to be able to convert data into date(), eg. getMonth(data)
+                        ticks: {
+                            beginAtZero: false, //working
+                            fontSize: 8 //working
+                        }
+                    }]
+                },
+                responsive: false,
+                maintainAspectRatio: false
+            }
+        });
+
+
+   
+});
+
+        
+initChart();
+        
+        
+        
+        
+        
+function getFormattedDate(date) {
+  var year = date.getFullYear();
+  var month = (1 + date.getMonth()).toString();
+  month = month.length > 1 ? month : '0' + month;
+  var day = date.getDate().toString();
+  day = day.length > 1 ? day : '0' + day;
+  
+  var hh = date.getHours();
+  hh = hh > 9 ? hh : '0' + hh;
+  var mm = date.getMinutes();
+  mm = mm > 9 ? mm : '0' + mm;
+  var ss = date.getSeconds();
+  ss = ss > 9 ? ss : '0' + ss;
+ 
+  return (day + '/' + month + '/' + year + " " + hh + ":" + mm + ":" + ss);
+}
+
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+    <script src="/bower/jquery/dist/jquery.min.js"></script>
+    <script src="/bower/Chart.js/dist/Chart.bundle.js"></script>
+</head>
+<body>
+    <canvas id="myChart2" width="900" height="400"></canvas>
+    <div class="ct-chart ct-perfect-fourth"></div>
+
+    
+<div id="adder"><a href="">add more data</a></div>
+
+
+   
+    <script>
+    dayAdder =1;
+    $( document ).ready(function() {
+  var myLineChart2;
+
+dat = new Date();
+
+
+$("#adder").click(function(){
+    //alert(dat.addDays(dayAdder));
+   // var c = dat.addDays(dayAdder);
+  //  dayAdder=dayAdder+1;
+    //index = myLineChart.data.datasets[0].data.length;
+    //myLineChart2.data.datasets[0].data[index] = (Math.floor(Math.random() * 30) + 1  ); 
+   // myLineChart2.data.labels[index] = dat.addDays(dayAdder);
+   // console.log(dayAdder);
+    //myLineChart2.update();
+
+
+
+
+
+});
+
+
+    }); //jquery ready function()
+      
+
+    var gg;
+//*********SOCKET.IO*********** 
+
+      //  initChart();
+
+Date.prototype.addDays = function(days)
+{
+    var dat = new Date(this.valueOf());
+    dat.setDate(dat.getDate() + days);
+    return dat;
+}
+
+  
+    
+    initChart = (function(){
+        var data2 = {
+            labels: [new Date("2015-05-18"),new Date("2015-05-17"),new Date("2015-05-16"),new Date("2015-05-15"),new Date("2015-05-14"),new Date("2015-05-13"),new Date("2015-05-12"),new Date("2015-05-11"),new Date("2015-05-10"),new Date("2015-05-9"),new Date("2015-05-8"),new Date("2015-05-7"),new Date("2015-05-6"),new Date("2015-05-5"),new Date("2015-05-4"),new Date("2015-05-3"),new Date("2015-04-18"),new Date("2015-04-17"),new Date("2015-04-16"),new Date("2015-04-15"),new Date("2015-04-14"),new Date("2015-04-13"),new Date("2015-04-12"),new Date("2015-04-11"),new Date("2015-04-10"),new Date("2015-04-9"),new Date("2015-04-8"),new Date("2015-04-7"),new Date("2015-04-6"),new Date("2015-04-5"),new Date("2015-04-4"),new Date("2015-04-3"),new Date("2015-03-18"),new Date("2015-03-17"),new Date("2015-03-16"),new Date("2015-03-15"),new Date("2015-03-14"),new Date("2015-03-13"),new Date("2015-03-12"),new Date("2015-03-11"),new Date("2015-03-10"),new Date("2015-03-9"),new Date("2015-03-8"),new Date("2015-03-7"),new Date("2015-03-6"),new Date("2015-03-5"),new Date("2015-03-4"),new Date("2015-03-3"),new Date("2015-02-18"),new Date("2015-02-17"),new Date("2015-02-16"),new Date("2015-02-15"),new Date("2015-02-14"),new Date("2015-02-13"),new Date("2015-02-12"),new Date("2015-02-11"),new Date("2015-02-10"),new Date("2015-02-9"),new Date("2015-02-8"),new Date("2015-02-7"),new Date("2015-02-6"),new Date("2015-02-5"),new Date("2015-02-4"),new Date("2015-02-3")],
+            datasets: [{
+                label: "Temp & Hum",
+                fill: true,
+                lineTension: 0.1,
+                backgroundColor: "rgba(75,192,192,0.4)",
+                borderColor: "rgba(75,192,192,1)",
+                borderCapStyle: 'butt',
+                borderDash: [],
+                borderDashOffset: 0.0,
+                borderJoinStyle: 'miter',
+                pointBorderColor: "rgba(75,192,192,1)",
+                pointBackgroundColor: "#fff",
+                pointBorderWidth: 2,
+                pointHoverRadius: 8,
+                pointHoverBackgroundColor: "rgba(75,192,192,1)",
+                pointHoverBorderColor: "rgba(220,220,220,1)",
+                pointHoverBorderWidth: 4,
+                pointRadius: 2,
+                pointHitRadius: 10,
+                data: [21, 23, 24, 26, 27, 29, 26, 28, 30, 29,28,29,31,30,30,30,21, 23, 24, 26, 27, 29, 26, 28, 30, 29,28,29,31,30,30,30,21, 23, 24, 26, 27, 29, 26, 28, 30, 29,28,29,31,30,30,30,21, 23, 24, 26, 27, 29, 26, 28, 30, 29,28,29,31,30,30,30,21, 23, 24, 26, 27, 29, 26, 28, 30, 29,28,29,31,30,30,30,21, 23, 24, 26, 27, 29, 26, 28, 30, 29,28,29,31,30,30,30,21, 23, 24, 26, 27, 29, 26, 28, 30, 29,28,29,31,30,30,30,21, 23, 24, 26, 27, 29, 26, 28, 30, 29,28,29,31,30,30,30,21, 23, 24, 26, 27, 29, 26, 28, 30, 29,28,29,31,30,30,30],
+            }]
+        };
+   // });     
+    
+    var ctx2 = $("#myChart2");
+
+//this works good !!!, correct property allocation for chartjs
+        myLineChart2 = new Chart(ctx2, {
+            type: 'line',
+            data: data2,
+            options: {
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        position: "top", //working
+                        type: "time", //needs to be able to convert data into date(), eg. getMonth(data)
+ time: {
+        // string/callback - By default, date objects are expected. You may use a pattern string from http://momentjs.com/docs/#/parsing/string-format/ to parse a time string format, or use a callback function that is passed the label, and must return a moment() instance.
+        parser: false,
+        // string - By default, unit will automatically be detected.  Override with 'week', 'month', 'year', etc. (see supported time measurements)
+        unit: false,
+
+        // Number - The number of steps of the above unit between ticks
+        unitStepSize: 1,
+
+        // string - By default, no rounding is applied.  To round, set to a supported time unit eg. 'week', 'month', 'year', etc.
+        round: false,
+
+        // Moment js for each of the units. Replaces `displayFormat`
+        // To override, use a pattern string from http://momentjs.com/docs/#/displaying/format/
+        displayFormats: {
+            'millisecond': 'SSS [ms]',
+            'second': 'h:mm:ss a', // 11:20:01 AM
+            'minute': 'h:mm:ss a', // 11:20:01 AM
+            'hour': 'MMM D, hA', // Sept 4, 5PM
+            'day': 'll', // Sep 4 2015
+            'week': 'll', // Week 46, or maybe "[W]WW - YYYY" ?
+            'month': 'MMM YYYY', // Sept 2015
+            'quarter': '[Q]Q - YYYY', // Q3
+            'year': 'YYYY', // 2015
+        }},
+
+
+                        ticks: {
+                          //  beginAtZero: true, //working
+                         //   fontSize: 8 //working
+                        }
+                    }]
+                },
+            //    responsive: true, //makes go full screen width
+            //    maintainAspectRatio: true
+            }
+        });
+
+
+   
+});
+
+        
+initChart();
+        
+        
+        
+        
+        
+function getFormattedDate(date) {
+  var year = date.getFullYear();
+  var month = (1 + date.getMonth()).toString();
+  month = month.length > 1 ? month : '0' + month;
+  var day = date.getDate().toString();
+  day = day.length > 1 ? day : '0' + day;
+  
+  var hh = date.getHours();
+  hh = hh > 9 ? hh : '0' + hh;
+  var mm = date.getMinutes();
+  mm = mm > 9 ? mm : '0' + mm;
+  var ss = date.getSeconds();
+  ss = ss > 9 ? ss : '0' + ss;
+ 
+  return (day + '/' + month + '/' + year + " " + hh + ":" + mm + ":" + ss);
+}
+
+
+
+</script>
+</body>
+</html>
