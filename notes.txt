@@ -40,3 +40,22 @@ From command line: >mongod
 from mongo > cmdline
 
 ----------------------------------------------------------------
+***** git *****
+The git clone command copies an existing Git repository, it is a completely isolated environment from the original repository.
+
+I.E:
+git clone https://github.com/frankc60/node-mysensors.git
+
+creates a node-mysensors sub-folder with all files in it.
+
+**after changes (add/modify/remove)
+from base folder (/node-mysensors), run > git status  (to see changes)
+>git add .  (to add all changes)
+>git commit -m "description of changes"  (commit with message)
+
+>git push origin master   (git push [remote-name] [branch-name], git remove -v will show remote-names)
+
+# Tell Git who you are
+git config --global user.name "John Smith"
+git config --global user.email john@example.com
+
