@@ -1,0 +1,42 @@
+---------------------------------------------------------------
+to add a new require js module:
+
+from command line, in folder:
+
+/node-mysensors> npm install <modulename> --save
+
+eg. 	npm install serve-favicon --save
+
+	then in code.js file:
+	var favicon = require('serve-favicon');
+---------------------------------------------------------------
+***** EXPRESS.js *****
+
+-STATIC FOLDERS
+app.use("/bower", express.static(__dirname + '/bower_components'));  
+app.use("/public", express.static(__dirname + "/public"));
+
+THEN IN HTML:
+<script src="/bower/jquery/dist/jquery.min.js"></script>
+--------------------------
+----------------------------------------------------------------
+
+
+----------------------------------------------------------------
+***** Mongoose / MongoDB *****
+
+From command line: >mongod
+
+> db.mysensors.distinct("a2")
+[ "43", "42", "46" ]
+> db.mysensors.distinct("a3")
+[ "0" ]
+> db.mysensors.distinct("s")
+[ "1", "0", "2" ]
+> db.mysensors.distinct("a1")
+[ "43", "42" ]
+
+
+from mongo > cmdline
+
+----------------------------------------------------------------

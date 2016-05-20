@@ -25,11 +25,19 @@ var mysensorsSchema = new Schema({
     l: String,
     sg: String,
     data: String,
-    timestamp: Date
+    timestamp: Date,
+    timestamp2: Date
 });
 
 //data model 1-many
 //nodeID 1-m sensorid - 1 data
+
+mysensorsSchema.pre('save', function(next) {
+    var currentTS = new Date();
+    this.timestamp2 = currentTS;
+    next();  
+});
+
 
 var mysensors = mongoose.model("mysensors",mysensorsSchema);
 //-----

@@ -8,6 +8,27 @@ var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var serialport = require("serialport");
 
+var favicon = require('serve-favicon');
+//get ip address
+var os = require('os');
+
+var interfaces = os.networkInterfaces();
+console.log(interfaces);
+var addresses = [];
+for (var k in interfaces) {
+    for (var k2 in interfaces[k]) {
+        var address = interfaces[k][k2];
+        if (address.family === 'IPv4' && !address.internal) {
+            addresses.push(address.address);
+        }
+
+    }
+}
+//
+//console.log("address: " + addresses[0]);
+
+
+
 
 //***************************************************************
 //var mongoose = require("mongoose");
@@ -15,7 +36,7 @@ var serialport = require("serialport");
 var mongooseModels = require(__dirname + "/models/" + "kitten.js");
 
 mongooseModels.mysensors.find(function(err,users) {
-	console.log(users);
+	//console.log(users);
 });
 
 mongooseModels.updateMongoose(mongooseModels.kitten, {name: "Pete"});
@@ -36,11 +57,13 @@ mongooseModels.updateMongoose(mongooseModels.kitten, {name: "Pete"});
 app.use("/bower", express.static(__dirname + '/bower_components'));  
 app.use("/public", express.static(__dirname + "/public"));
 
+app.use(favicon(__dirname + '/public/favicon.ico'));
 
 //process requests
 app.get('/', function(req, res,next) {  
 	console.log(getFormattedDate() + " - Got a GET request for the homepage");
     res.sendFile(__dirname + '/index.html');
+    //res.send(addresses[0]);
 });
 
 app.get('/dashboard', function(req, res,next) {  
