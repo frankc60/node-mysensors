@@ -56,6 +56,17 @@ from base folder (/node-mysensors), run > git status  (to see changes)
 >git push origin master   (git push [remote-name] [branch-name], git remove -v will show remote-names)
 
 # Tell Git who you are
-git config --global user.name "John Smith"
-git config --global user.email john@example.com
+git config --global user.name "Frank"
+git config --global user.email "frankc60@gmail.com"
+git config --global push.default = simple
+-------------------------------------------------------------
+
+crontab -e
+
+@reboot /usr/bin/node /home/pi/node-mysensors/app.js &
+***	(still to test!)
+"&" says to run in background
+@reboot says to run on a reboot of system.
+
+-------------------------------------------------------------
 

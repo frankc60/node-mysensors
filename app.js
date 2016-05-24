@@ -106,7 +106,24 @@ io.sockets.on('connection', function(socket) {
 
 	
 	socket.on('messageFromClient', function (data) { 
-		socket.emit("notification", "received messge from client: " + data);
+        switch (data.action)
+        {
+            case 1: //restart Gateway
+            //	44;0;1;0;2;1\\n
+            //	node-id;child-sensor-id;message-type;ack;sub-type;payload\n
+            //	node 44
+            //	sensor 0
+            //	message-type=1 (set)
+            //	acknowledge = 0 ()
+            //	set v_light(2) to  1 (1=on)
+            //	
+                writeSerial(data.data);
+                //serialPort.write("hello world"); //write out to gateway
+               // console.log("messageFromClient, switch case 1");
+        }
+
+                //send back notification to client that action has been done, or not
+		        io.emit("notification", "Gateway has been restarted, as requested.");
 	});
 	
 	socket.on('disconnect', function () { 
@@ -114,18 +131,45 @@ io.sockets.on('connection', function(socket) {
         console.log(getFormattedDate() + " - socket.disconnected")
 		socket.emit("notification", "socket has disconnected!");
 	});
+
+	socket.on('error', console.error.bind(console));
+
 });
 //-------------------------------------------------------------------
+
+ function writeSerial(data) {
+       	    console.log("writeSerial("+data+")");
+			serialPort.write((data+"\n"), function () {
+			serialPort.drain(writeSerialCallback);
+		});
+
+//24 May @ 12:41, have working with:
+// 0;0;3;0;2;
+// get data back: (version:1.5.4)
+// 		0;0;3;0;2;1.5.4
+//  And
+//  255;255;3;0;4;1
+//  255;255;3;0;3;1
+//  255;255;3;0;6;1
+
+
+ }
+
+var writeSerialCallback = function (error) { 
+	if(error) {console.log("SERIAL ERROR: " + error)}
+	console.log("serialPort.write() now completed successfully.");
+};
+
 
 
 
 //===============================================================
 //SERIAL PORT
-var serialConnect = (function() {
+var serialConnect = function() {
 
     var SerialPort = serialport.SerialPort; 
 
-    var serialPort = new SerialPort("/dev/ttyACM0", {
+    serialPort = new SerialPort("/dev/ttyACM0", {
       baudrate: 115200,
       parser: serialport.parsers.readline("\n")
     });
@@ -136,6 +180,10 @@ var serialConnect = (function() {
     serialPort.on('close', showPortClose);
     serialPort.on('error', showError);
     
+    //*******************************************************************************
+   
+   
+
     //*******************************************************************************
     function showPortOpen() {
        console.log(getFormattedDate() + ' - port open. Data rate: ' + serialPort.options.baudRate);
@@ -221,7 +269,7 @@ var serialConnect = (function() {
        setTimeout(serialConnect, 10000);
     }
     //*******************************************************************************
-});
+};
 //*******************************************************************************
 serialConnect();
 //===============================================================

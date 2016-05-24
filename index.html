@@ -19,13 +19,35 @@
 
 <div class="ct-chart ct-perfect-fourth"></div>
 
-
+<input type="text" name="dd" id="dd" />
+<button id="sendData">sendData</button>
+<br/>
+node-id;child-sensor-id;message-type;ack;sub-type;payload\n
+<br/><br/>
 <div id="container">Last Update:</div>
 <div id="data">appended data</div>
 
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
+
+$( document ).ready(function() {
+ 
+    $("#sendData").click(function() {
+        console.log("send restart command");
+
+        var dd = $("#dd").val();
+        //console.log("dd: " + dd);
+        var obj = {"msg": "restart Gateway", action: 1, data: dd};
+        
+        socket.emit('messageFromClient', obj);
+        console.log("messageFromClient emitted: " + JSON.stringify(obj));    
+    });
+
+
+});
+
+ 
 
 //global scope
     var regData;
@@ -45,10 +67,9 @@ console.log("fullHostUrl: " + fullHostUrl);
         
     socket.on('notification', function (data) {
         // convert the json string into a valid javascript object
-        var _data = JSON.parse(data);
-
-        $('#container').html(_data.test.sample);
-        $('time').html('Last Update:' + new Date());
+        //var _data = JSON.parse(data);
+        console.log("websocket notification from server: " + data);
+        $('#container').html(data);
     });
 
     socket.on('disconnect', function(){

@@ -20,6 +20,7 @@
     "mongoose": "^4.4.17",
     "serialport": "^3.1.1",
     "serve-favicon": "^2.3.0",
-    "socket.io": "^1.4.6"
+    "socket.io": "^1.4.6",
+    "xml2json": "^0.9.1"
   }
 }
