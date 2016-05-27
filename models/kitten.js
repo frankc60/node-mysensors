@@ -9,10 +9,11 @@ mongoose.connect('mongodb://localhost/test', function(err) {
 var Schema = mongoose.Schema;
 //****************************************************
 //define schemas
-var kittenSchema = new Schema({
+/*var kittenSchema = new Schema({
 	name: String
 });
 var kitten = mongoose.model('Kitten', kittenSchema);
+*/
 //-----
 var mysensorsSchema = new Schema({
     a1: String,
@@ -57,7 +58,7 @@ var updateMongoose = function(mdl,obj) {
 //****************************************************
 
 //export modules for import by a require statement in master js file.
-module.exports.kitten = kitten;
+//module.exports.kitten = kitten;
 module.exports.mysensors = mysensors;
 module.exports.updateMongoose = updateMongoose;
 

@@ -39,7 +39,7 @@ mongooseModels.mysensors.find(function(err,users) {
 	//console.log(users);
 });
 
-mongooseModels.updateMongoose(mongooseModels.kitten, {name: "Pete"});
+//mongooseModels.updateMongoose(mongooseModels.kitten, {name: "Pete"});
 
 //***************************************************************
 
@@ -179,9 +179,12 @@ var serialConnect = function() {
     serialPort.on('data', sendSerialData);
     serialPort.on('close', showPortClose);
     serialPort.on('error', showError);
-    
+    serialPort.on('disconnect', showError)
+
     //*******************************************************************************
    
+
+
    
 
     //*******************************************************************************
@@ -253,6 +256,7 @@ var serialConnect = function() {
             //data2 = " [ignored]";
             console.log(getFormattedDate() + " - data not correct format, nothing sent to client!");
         }
+        spTimeoutf();
 
     }
     //*******************************************************************************
@@ -266,12 +270,42 @@ var serialConnect = function() {
     function showError(error) {
        console.log(getFormattedDate() + ' - Serial port error: ' + error);
        console.log("TIMEOUT FOR 10 SECONDS THEN TRY TO RECONNECT!");
-       setTimeout(serialConnect, 10000);
+       setTimeout(serialConnect2, 10000);
     }
     //*******************************************************************************
+
+    //spTimeoutf();
 };
 //*******************************************************************************
+
+//set timeout for serial no data.
+//clear timeout each time data arrives, clearTimeout(spTimeout);
+//OR SHOULD I USE SETTIMEINTERVAL, THAT WILL RUN EVERY XX SECONDS, INSTEAD OF JUST ONCE.
+var serialConnect2 = function() {
+ 
+	serialPort.drain(function(err) {
+		console.log("serialport drained, now close().");
+		serialPort.close();
+	});
+};
+
+var spTimeout = setTimeout(serialConnect2,30000);
+
+spTimeoutf = function(){
+    var tme = 240000;
+
+    if (typeof spTimeout !== 'undefined') {
+        clearInterval(spTimeout);
+        console.log(getFormattedDate() + " - reset serial timeout back to " + (tme/60000) + " mins.");
+    }
+    //console.log("spTimeoutf();");
+    spTimeout = setInterval(serialConnect2, tme); // 1000 * 60 (1min) * x(mins) 
+    return;
+};
+
 serialConnect();
+
+
 //===============================================================
 /*
 s = sensor id
