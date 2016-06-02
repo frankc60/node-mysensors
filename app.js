@@ -7,6 +7,8 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var serialport = require("serialport");
+var handlebars = require('handlebars');
+
 
 var favicon = require('serve-favicon');
 //get ip address
@@ -42,9 +44,12 @@ mongooseModels.mysensors.find(function(err,users) {
 //mongooseModels.updateMongoose(mongooseModels.kitten, {name: "Pete"});
 
 //***************************************************************
-
-
-
+/*
+var vc = mongooseModels.mysensors.getCollection('mysensors').distinct("a1").exec(function(err,x) {
+    console.log("XXXXXXXXXXXXXXXXXXXXXXXX");
+    console.log(vc);
+});
+*/
 
 
 
@@ -59,6 +64,17 @@ app.use("/public", express.static(__dirname + "/public"));
 
 app.use(favicon(__dirname + '/public/favicon.ico'));
 
+
+//HANDLEBARS
+var exphbs = require("express-handlebars"); 
+app.engine('handlebars', exphbs({defaultLayout: 'main',partialsDir: ['shared/templates/','views/partials/']})); 
+app.set('view engine', 'handlebars');
+//****************
+
+
+app.disable('etag');
+
+
 //process requests
 app.get('/', function(req, res,next) {  
 	console.log(getFormattedDate() + " - Got a GET request for the homepage");
@@ -68,13 +84,29 @@ app.get('/', function(req, res,next) {
 
 app.get('/dashboard', function(req, res,next) {  
 	console.log("Got a GET request for the dashboard!!!!");
-   res.sendFile(__dirname + '/index2.html');
+    // res.render('jadeexample', { users: users });
+	 res.render('hello', {title: "hello page"});
+   //res.sendFile(__dirname + '/index2.html');
 });
 
-app.get('/monchart', function(req, res,next) {  
-	console.log("Got a GET request for the monchartjs!!!!");
-   res.sendFile(__dirname + '/monchart.html');
+var californiapeople = { title: "cali dudes",
+   people: [
+{"name":"Adams","first":"Ansel","profession":"photographer","born":"SanFrancisco"},
+{"name":"Muir","first":"John","profession":"naturalist","born":"Scotland"},
+{"name":"Schwarzenegger","first":"Arnold","profession":"governator","born":"Germany"},
+{"name":"Wellens","first":"Paul","profession":"author","born":"Belgium"}]};
+
+app.get('/dashboard2', function(req, res,next) {  
+    console.log("Got a GET request for the dashboard2!!!!");
+    res.render('town', { town: "Waipara", title: "town page"});
 });
+
+app.get('/dashboard3', function(req, res,next) {  
+    console.log("Got a GET request for the dashboard3!!!!");
+    res.render('cooltable', californiapeople);
+});
+
+
 
 //for playing around on samples
 app.get('/samples/charts', function(req, res,next) {  
@@ -120,12 +152,74 @@ io.sockets.on('connection', function(socket) {
                 writeSerial(data.data);
                 //serialPort.write("hello world"); //write out to gateway
                // console.log("messageFromClient, switch case 1");
-        }
+                break;
+            case 2: // request Initial Data 
+                var date = new Date();
+                var year = date.getFullYear();
+                var month = (1 + date.getMonth()).toString();
+                month = month.length > 1 ? month : '0' + month;
+                var day = date.getDate().toString();
+                day = day.length > 1 ? day : '0' + day;
+            
+                console.log (year + "-" + month + "-" + day + "");
 
-                //send back notification to client that action has been done, or not
-		        io.emit("notification", "Gateway has been restarted, as requested.");
+
+                mongooseModels.mysensors.aggregate([
+                    { $match: 
+                        { $and : [ 
+                            { "a1": "42" },
+                            { "s": "1" },
+                            { "timestamp": {    $gte : new Date(year + "-" + month + "-" + day +" 00:00:01")    }} 
+                        ] } 
+                    }
+                ], function (err, result) {
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
+
+                    console.log(getFormattedDate() + " - converted to json: %j", result);
+                    io.emit('update', result);
+                });
+                break;
+            case 3: //query dates
+                var dataObj = data.data;
+                console.log("query dates request, data: " + (typeof dataObj));
+                
+                var from = dataObj.datea;
+                //var fromb = from.substr(0,3);
+
+                var to = dataObj.dateb;
+
+                mongooseModels.mysensors.aggregate([
+                    { $match: 
+                        { $and : [ 
+                            { "a1": "42" },
+                            { "s": "1" },
+                            { "timestamp": {    $gte : new Date(from) }},
+                            { "timestamp": {    $lte : new Date(to) }}                            
+                        ] } 
+                    }
+                ], function (err, result) {
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
+                    console.log(getFormattedDate() + " - converted to json: %j", result);
+                    io.emit('update', result);
+                });
+                
+
+
+                break;
+            } //end of switch
+
+            //send back notification to client that action has been done, or not
+	        io.emit("notification", "Data sent.");
 	});
-	
+
+
+//------------------------------------------------------
 	socket.on('disconnect', function () { 
 		//WILL BE IGNORED, AS USER HAS GONE!
         console.log(getFormattedDate() + " - socket.disconnected")
@@ -263,14 +357,14 @@ var serialConnect = function() {
     function showPortClose() {
        console.log(getFormattedDate() + ' - port closed.');
        console.log(getFormattedDate() + " - attempting to reconnect...");
-       serialConnect();
+       setTimeout(serialConnect, 5000);
 
     }
     //*******************************************************************************
     function showError(error) {
        console.log(getFormattedDate() + ' - Serial port error: ' + error);
-       console.log("TIMEOUT FOR 10 SECONDS THEN TRY TO RECONNECT!");
-       setTimeout(serialConnect2, 10000);
+       console.log("TIMEOUT FOR 8 SECONDS THEN TRY TO RECONNECT!");
+       setTimeout(serialConnect, 8000);
     }
     //*******************************************************************************
 

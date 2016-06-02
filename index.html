@@ -19,7 +19,9 @@
 
 <div class="ct-chart ct-perfect-fourth"></div>
 
-<input type="text" name="dd" id="dd" />
+<input type="text" name="datea" id="datea" />
+<input type="text" name="dateb" id="dateb" />
+
 <button id="sendData">sendData</button>
 <br/>
 node-id;child-sensor-id;message-type;ack;sub-type;payload\n
@@ -34,15 +36,26 @@ node-id;child-sensor-id;message-type;ack;sub-type;payload\n
 $( document ).ready(function() {
  
     $("#sendData").click(function() {
-        console.log("send restart command");
+        console.log("send date query");
 
-        var dd = $("#dd").val();
+        var datea = $("#datea").val();
+        var dateb = $("#dateb").val();
+        
+        var dates = {datea: datea, dateb: dateb};
+
         //console.log("dd: " + dd);
-        var obj = {"msg": "restart Gateway", action: 1, data: dd};
+        var obj = {"msg": "query dates", action: 3, data: dates};
         
         socket.emit('messageFromClient', obj);
         console.log("messageFromClient emitted: " + JSON.stringify(obj));    
     });
+
+
+//request initial data for the current day
+var obj = {"msg": "request Initial Data", action: 2, data: ""};
+socket.emit('messageFromClient', obj);
+console.log("request Initial Data");
+
 
 
 });
@@ -203,74 +216,25 @@ socket.on("update", function (jsonData2) {
         console.log(getFormattedDate(new Date()) + " - jsonData is JSON !!");
         var index;
         //alert(regData.data + " - " + regData.device);
+var arrayIndex = 0;
 
-            $.each( devices.items, function( indx, item ) {
-            // Do somethin
-            //alert(indx + " = " + item.name + ", idx:" + item.idx);
+    if(jsonData2 instanceof Array) {
+        for(t=0; t< jsonData2.length; t++) {
+            forEach(devices, jsonData2[t]);
+            console.log(jsonData2[2].a1);
 
-            if(jsonData.a1 == item.idx) {
-                var tme = getFormattedDate(new Date());
-                console.log(tme + " - item " + item.idx + " updated (" + item.name + ")");
+        }
+        
+    } else {
+forEach(devices, jsonData);
 
-                $('#container').html("last update: " + tme + " " + item.name + " (" + item.idx + "," + item.sensorid + ")");
 
-             
-                switch (jsonData.a1)
-                {
-                    case 43:
-                        if(jsonData.s == 1) {
-                            console.log(getFormattedDate(new Date()) + " - jsonData.a1=" + jsonData.a1 + " for switch 43.");
-                            index = myLineChart.data.datasets[0].data.length;
+    }
 
-                            myLineChart.data.datasets[0].data[index] = parseFloat(jsonData.data); 
 
-//need to convert to iso time, as is issue for chart.js: https://github.com/moment/moment/issues/1407
-                            var timestamp = new Date(jsonData.timestamp);
-                            var isoTimestamp = timestamp;
 
-                            myLineChart.data.labels[index] = isoTimestamp;
-                            myLineChart.update();
 
-                            data2 = "<b>" + item.name + " " + jsonData.a1 + " - s=" + jsonData.s + " " + jsonData.data + "</b>";
-                            updatesx = true;
-                        } else {
-                            console.log(getFormattedDate(new Date()) + " - update from "+jsonData.a1+", but wrong sensorid, should be 1 but is " + jsonData.s);
-                        }
-                        break;
-                    case 42:
-                        //alert(lineChartNodeID);
-                        if(jsonData.s == 1) {
-                            index = myLineChart2.data.datasets[0].data.length;
-                       
-                            myLineChart2.data.datasets[0].data[index] = parseFloat(jsonData.data); 
-                            myLineChart2.data.labels[index] = new Date(jsonData.timestamp);
-                            myLineChart2.update();
 
-                            data2 = "<b>" + item.name + " " + jsonData.a1 + " - s=" + jsonData.s + " " + jsonData.data + "</b>";
-                            updatesx = true;
-                        } else {
-                              console.log("update from "+jsonData.a1+", but wrong sensorid, should be 1 but is " + jsonData.s);
-                        }
-                        break;
-                    default: 
-                        data2 = "" + item.name + " (" + jsonData.a1 + ") - (not in graph)";
-                        updatesx = true;
-                        break;
-                }
-
-            //UPDATE TICKER ON PAGE OF ALL PAST UPDATES.
-            if(updatesx) {
-                $("#data").append("<br/>" + getFormattedDate(new Date()) + " - " + data2);
-                console.log(getFormattedDate(new Date()) + " - " + data2);
-                data2="zzz";
-                updatesx=false;
-            }
-           
-            } else {
-           // console.log("X " + item.name + "");
-            }
-
-        }); //for each
 
     
 
@@ -296,6 +260,88 @@ function getFormattedDate(date) {
   ss = ss > 9 ? ss : '0' + ss;
  
   return (day + '/' + month + '/' + year + " " + hh + ":" + mm + ":" + ss);
+
+}
+
+
+
+
+
+function forEach(devices, jsonData) {
+console.log("forEach: " + JSON.stringify(jsonData));
+            $.each( devices.items, function( indx, item ) {
+            // Do something
+            //alert(indx + " = " + item.name + ", idx:" + item.idx);
+console.log("111111:" + jsonData.length + " - " + jsonData.a1 + " - " + jsonData.data);
+          
+            if(jsonData.a1 == item.idx) {
+                console.log("22222222");
+                var tme = getFormattedDate(new Date());
+                console.log(tme + " - item " + item.idx + " updated (" + item.name + ")");
+
+                $('#container').html("last update: " + tme + " " + item.name + " (" + item.idx + "," + item.sensorid + ")");
+
+             
+                switch (jsonData.a1)
+                {
+                    case "43":
+                    case 43:
+                        if(jsonData.s == 1) {
+                            console.log(getFormattedDate(new Date()) + " - jsonData.a1=" + jsonData.a1 + " for switch 43.");
+                            index = myLineChart.data.datasets[0].data.length;
+
+                            myLineChart.data.datasets[0].data[index] = parseFloat(jsonData.data); 
+
+//need to convert to iso time, as is issue for chart.js: https://github.com/moment/moment/issues/1407
+                            var timestamp = new Date(jsonData.timestamp);
+                            var isoTimestamp = timestamp;
+
+                            myLineChart.data.labels[index] = isoTimestamp;
+                            myLineChart.update();
+
+                            data2 = "<b>" + item.name + " " + jsonData.a1 + " - s=" + jsonData.s + " " + jsonData.data + "</b>";
+                            updatesx = true;
+                        } else {
+                            console.log(getFormattedDate(new Date()) + " - update from "+jsonData.a1+", but wrong sensorid, should be 1 but is " + jsonData.s);
+                        }
+                        break;
+                    case "42":
+                    case 42:
+                        //alert(lineChartNodeID);
+                        if(jsonData.s == 1 ) {
+                            index = myLineChart2.data.datasets[0].data.length;
+                       
+                            myLineChart2.data.datasets[0].data[index] = parseFloat(jsonData.data); 
+                            myLineChart2.data.labels[index] = new Date(jsonData.timestamp);
+                            myLineChart2.update();
+
+                            data2 = "<b>" + item.name + " " + jsonData.a1 + " - s=" + jsonData.s + " " + jsonData.data + "</b>";
+                            updatesx = true;
+                        } else {
+                              console.log("update from "+jsonData.a1+", but wrong sensorid, should be 1 but is " + jsonData.s);
+                        }
+                        break;
+                    default: 
+                        data2 = "" + item.name + " (" + jsonData.a1 + "-"+jsonData.s+") - (not in graph)";
+                        updatesx = true;
+                        break;
+                }
+
+            //UPDATE TICKER ON PAGE OF ALL PAST UPDATES.
+            if(updatesx) {
+                $("#data").append("<br/>" + getFormattedDate(new Date()) + " - " + data2);
+                console.log(getFormattedDate(new Date()) + " - " + data2);
+                data2="zzz";
+                updatesx=false;
+            }
+           
+            } else {
+           // console.log("X " + item.name + "");
+            }
+
+        }); //for each
+
+
 }
 
 
